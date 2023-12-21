@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserRegistered;
 use App\Http\Requests\UserRequest;
+use App\Jobs\SendUserRegistrationNotification;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -24,6 +26,7 @@ class UserController extends Controller
 
     public function store(UserRequest $request)
     {
+
         //start here user create
         if($request->method() == 'POST')
         {
@@ -43,6 +46,10 @@ class UserController extends Controller
                 $user->password = bcrypt($request->password);
 
                 $user->save();
+
+                broadcast(new UserRegistered($user));
+
+                dispatch(new SendUserRegistrationNotification($user));
 
                 DB::commit();
 
